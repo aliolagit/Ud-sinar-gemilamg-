@@ -87,19 +87,10 @@
             return Array.from(inputs).map(i => i.value).join('');
         }
 
-        // Cek apakah 6 digit dan semua digit sama, mis. "111111"
-        function isSixDigitsAllSame(value) {
-            return (/^\d{6}$/.test(value) && /^(\d)\1{5}$/.test(value));
-        }
-
         // Validasi unik: otpEmail tidak boleh sama dengan otpWhatsApp atau pinMitra
-        // Jika gagal validasi (termasuk 6 digit sama) -> kembalikan message '6 digit yang anda masukan salah'
+        // Hanya cek kesamaan antar-field (jika sama -> tampilkan alert '6 digit yang anda masukan salah')
         function validateUniqueOtpEmail(otpEmail) {
             if (!/^\d{6}$/.test(otpEmail)) return { ok: false, message: 'Kode harus 6 digit.' };
-
-            if (isSixDigitsAllSame(otpEmail)) {
-                return { ok: false, message: '6 digit yang anda masukan salah' };
-            }
 
             try {
                 const otpWhatsApp = localStorage.getItem('otpWhatsApp');
@@ -120,7 +111,6 @@
             const otp = getOtpEmail();
             const check = validateUniqueOtpEmail(otp);
             if (!check.ok) {
-                // tampilkan alert persis sesuai permintaan
                 alert(check.message);
                 uniqueError.textContent = check.message;
                 uniqueError.style.display = 'block';
